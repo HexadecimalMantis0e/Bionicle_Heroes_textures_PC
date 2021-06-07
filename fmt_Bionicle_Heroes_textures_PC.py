@@ -4,35 +4,26 @@ import rapi
 
 def registerNoesisTypes():
     handle = noesis.register("Bionicle Heroes textures", ".nup")
-    noesis.setHandlerTypeCheck(handle, noepyCheckType)
-    noesis.setHandlerLoadRGBA(handle, BioHLoadRGBA)
+    noesis.setHandlerTypeCheck(handle, bioHCheckType)
+    noesis.setHandlerLoadRGBA(handle, bioHLoadRGBA)
     handle = noesis.register("Bionicle Heroes textures", ".hgp")
-    noesis.setHandlerTypeCheck(handle, noepyCheckType)
-    noesis.setHandlerLoadRGBA(handle, BioHLoadRGBA)
+    noesis.setHandlerTypeCheck(handle, bioHCheckType)
+    noesis.setHandlerLoadRGBA(handle, bioHLoadRGBA)
     noesis.logPopup()
     return 1
 
-def noepyCheckType(data):
+def bioHCheckType(data):
     return 1
 
-def getFormat(dxtInfo):
-    if dxtInfo == 0x33545844:
-        dxtFormat = noesis.NOESISTEX_DXT3
-        print ("Format: DXT3")
-    else:
-        dxtFormat = noesis.NOESISTEX_DXT5
-        print ("Format: DXT5")
-    return dxtFormat
-
-def BioHLoadRGBA(data, texList):
+def bioHLoadRGBA(data, texList):
     texCount = 0
     bs = NoeBitStream(data)
-    filesize = bs.getSize()
-    filesizeDiv4 = filesize//4
-    for i in range(0, filesizeDiv4-1):
-        Temp = bs.readInt()
+    fileSize = bs.getSize()
+    fileSizeDiv4 = fileSize // 4
+    for i in range(0, fileSizeDiv4 - 1):
+        temp = bs.readInt()
 
-        if (Temp == 0x0020534444):
+        if (temp == 0x20534444):
             texCount += 1
             print(texCount)
             offset = bs.tell()
@@ -40,24 +31,24 @@ def BioHLoadRGBA(data, texList):
             bs.seek(0x08, NOESEEK_REL)
             height = bs.readInt()
             width = bs.readInt()
-
             print ("Height: " + str(height))
             print ("Width: " + str(width))
-
             bs.seek(0x08, NOESEEK_REL)
             mipCount = bs.readInt()
             print ("Mips: " + str(mipCount))
-            bs.seek(0x34, NOESEEK_REL)
-            dxtHeader = bs.readInt()
-            bs.seek(0x28, NOESEEK_REL)
-            for j in range(0x00,mipCount):
-                if j != 0x00:
-                    texCount+=1
-                    print(texCount)
+            bs.seek(-0x20, NOESEEK_REL)
+
+            if mipCount == 0x00:
+                textureSize = (height * width * 0x06) + 0x80
+            else:
+                textureSize = (height * width) + 0x80
+
+                for i in range(1, mipCount):
                     height //= 0x02
                     width //= 0x02
-                    print ("Height: " + str(height))
-                    print ("Width: " + str(width))
-                img = rapi.imageDecodeDXT(bs.readBytes(width*height), width, height, getFormat(dxtHeader))
-                texList.append(NoeTexture(str(i), width, height, img, noesis.NOESISTEX_RGBA32))
+                    textureSize += max(0x01, ((width + 0x03) // 0x04)) * max(0x01, ((height + 0x03) // 0x04)) * 0x10
+
+            img = rapi.loadTexByHandler(bs.readBytes(textureSize), ".dds")
+            img.name = str(texCount)
+            texList.append(img)
     return 1
