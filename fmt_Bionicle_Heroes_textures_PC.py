@@ -4,18 +4,18 @@ import rapi
 
 def registerNoesisTypes():
     handle = noesis.register("Bionicle Heroes textures", ".nup")
-    noesis.setHandlerTypeCheck(handle, bioHCheckType)
-    noesis.setHandlerLoadRGBA(handle, bioHLoadRGBA)
+    noesis.setHandlerTypeCheck(handle, bhCheckType)
+    noesis.setHandlerLoadRGBA(handle, bhLoadRGBA)
     handle = noesis.register("Bionicle Heroes textures", ".hgp")
-    noesis.setHandlerTypeCheck(handle, bioHCheckType)
-    noesis.setHandlerLoadRGBA(handle, bioHLoadRGBA)
+    noesis.setHandlerTypeCheck(handle, bhCheckType)
+    noesis.setHandlerLoadRGBA(handle, bhLoadRGBA)
     noesis.logPopup()
     return 1
 
-def bioHCheckType(data):
+def bhCheckType(data):
     return 1
 
-def bioHLoadRGBA(data, texList):
+def bhLoadRGBA(data, texList):
     texCount = 0
     bs = NoeBitStream(data)
     fileSize = bs.getSize()
@@ -27,16 +27,19 @@ def bioHLoadRGBA(data, texList):
             texCount += 1
             print(texCount)
             offset = bs.tell()
-            print ("Found texture header at: " + hex(offset - 0x04))
+            print("Found texture header at: " + hex(offset - 0x04))
             bs.seek(0x08, NOESEEK_REL)
             height = bs.readInt()
             width = bs.readInt()
-            print ("Height: " + str(height))
-            print ("Width: " + str(width))
+            print("Height: " + str(height))
+            print("Width: " + str(width))
             bs.seek(0x08, NOESEEK_REL)
             mipCount = bs.readInt()
-            print ("Mips: " + str(mipCount))
-            bs.seek(-0x20, NOESEEK_REL)
+            print("Mips: " + str(mipCount))
+            bs.seek(0x34, NOESEEK_REL)
+            type = bs.readBytes(0x04).decode()
+            print("Type: " + str(type))
+            bs.seek(-0x58, NOESEEK_REL)
 
             if mipCount == 0x00:
                 textureSize = (height * width * 0x06) + 0x80
