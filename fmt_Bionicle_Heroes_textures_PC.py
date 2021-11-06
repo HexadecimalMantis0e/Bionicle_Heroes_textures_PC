@@ -21,7 +21,7 @@ def bhLoadRGBA(data, texList):
     fileSize = bs.getSize()
     fileSizeDiv4 = fileSize // 4
     for i in range(0, fileSizeDiv4 - 1):
-        temp = bs.readInt()
+        temp = bs.readUInt()
 
         if (temp == 0x20534444):
             texCount += 1
@@ -29,12 +29,12 @@ def bhLoadRGBA(data, texList):
             offset = bs.tell()
             print("Found texture header at: " + hex(offset - 0x04))
             bs.seek(0x08, NOESEEK_REL)
-            height = bs.readInt()
-            width = bs.readInt()
+            height = bs.readUInt()
+            width = bs.readUInt()
             print("Height: " + str(height))
             print("Width: " + str(width))
             bs.seek(0x08, NOESEEK_REL)
-            mipCount = bs.readInt()
+            mipCount = bs.readUInt()
             print("Mips: " + str(mipCount))
             bs.seek(0x34, NOESEEK_REL)
             type = bs.readBytes(0x04).decode()
